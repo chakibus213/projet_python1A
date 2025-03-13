@@ -64,14 +64,14 @@ class SolverGreedy(Solver):
     def tri_pairs(self, liste_paires):  #tri une liste de paires en fonction de leur coût
         temp = [] #on crée une liste contenant les coûts de chacune des paires 
         compteur = 0
-        for element in liste_paires:  #on la trie 
+        for element in liste_paires:  #on la trie par ordre décroissant selon leur coût
             
             i1, j1 = element[0][0], element[0][1]
             i2, j2 = element[1][0], element[1][1]
 
             
 
-            temp.append( (abs ( self.grid.value[i1][j1] - self.grid.value[i2][j2]), compteur))
+            temp.append( -(abs ( self.grid.value[i1][j1] - self.grid.value[i2][j2]), compteur)) 
 
             compteur += 1
         
