@@ -147,88 +147,25 @@ class SolverEz(Solver):
         for i in range(len(L0)):
             for j in range(len(L1)):
                 if (L0[i], L1[j]) in self.grid.all_pairs() or (L1[j], L0[i]) in self.grid.all_pairs():
-                    L[i][j] = 1  # Marque cette paire comme valide
-                    L[j][i] = 1
-                else:
-                    L[i][j] = 0 # Marque cette paire comme non valide
-
-        return L, L0, L1  # Retourne la matrice d'adjacence et les listes des groupes
-
-
-
-
-
-
-
-
-    def score_g(self):
-        """
-        Calcule un score en essayant de former le maximum de paires tout en respectant les contraintes de la grille.
-        """
-
-        for i in range(len(self.La)):
-            self.success = False # Re initialise le succès à False à chaque itération
-            # Ignore les cases interdites
-            if self.grid.is_forbidden(self.L0[i][0], self.L0[i][1]):
-                continue
-
-            # Si une paire est immédiatement disponible, on l'ajoute
-            if 1 in self.La[i]:  
-                ind = self.La[i].index(1)  # Trouve la première paire possible
-                self.Lc.append((self.L0[i], self.L1[ind]))  # Ajoute la paire à la solution
-
-                # Supprime la connexion potentielle entre la case impaire ind et les autres cases paires
-                for k in range(len(self.La)):
-                    self.La[k][ind] = 0
-            else:
-                # Si aucune paire directe n'est trouvée, on tente d'en former une via la récursion
-                if self.recur(i, self.La, self.Lc, [])[3]: # Si il existe un chemin tel que la case i trouve une paire et toutes celles qui en avait déja avant aussi
-                    self.La, self.Lc, success = self.recur(i, self.La, self.Lc, [])
-            
+                    i1, j1 = L0[i][0], L0[i][1]
+                    i2, j2 = L1[1][0], L1[1][1]
                 
-        return (self.grid.n * self.grid.m - 2 * len(self.Lc),self.Lc) # Calcul du score final en soustrayant au nombre total de cases, les nombres sans paire et les cases noires
+                    L[i][j] = abs ( self.grid.value[i1][j1] - self.grid.value[i2][j2])  # Marque cette paire comme valide et met son poids dans la matrice d'adjacence
+                    L[j][i] = abs ( self.grid.value[i1][j1] - self.grid.value[i2][j2])
+                else:
+                    L[i][j] = -1 # Marque cette paire comme non valide
 
-    def recur(self, i, La1, Lc, visited):
-        """
-        Fonction récursive permettant de trouver une paire quand l'approche principale ne trouve rien immédiatement.
-        """
-        Lc1 = Lc[:]# On copie la liste Lc pour pouvoir faire des modifications temporaires sans modifier Lc
+        return L  
 
-        # Si une paire est disponible directement, on la sélectionne
-        if 1 in La1[i]:
-            ind = La1[i].index(1)
-            self.Lc.append((self.L0[i], self.L1[ind]))  # Ajoute cette paire à la solution
+    def hungarian_algorithm(cost_matrix):
+   
+        cost_matrix = np.array(cost_matrix)
+        row_ind, col_ind = linear_sum_assignment(-cost_matrix)  # Maximisation
+        return list(zip(row_ind, col_ind))
 
-
-            # Supprime la connexion potentielle entre la case impaire ind et les autres cases paires
-            for k in range(len(La1)):
-                La1[k][ind] = 0
-
-            return La1, Lc1,True  # Retourne les mises à jour (avec succès = True)
-
-        else:
-            # Exploration en profondeur pour essayer de former une paire indirectement
-            for j in range(len(self.L[i])): #on parcourt toutes les connexions potentielles initiales de la case paire i
-                if self.L[i][j] == 1 and j not in visited: #seulement si on n'a pas déja visité cette case pendant la recursion
-                    new_visited = visited[:]  # Copie de la liste visited pour que visited reste inchangé entre deux iterations de j
-                    new_visited.append(j)  # Ajoute l'index de la case impaire visitée pour éviter les boucles infinie
-
-                    
-
-                    # Retrouve la case paire avec laquelle elle etait initalement connectée, et chercher une nouvelle paire à cette case paire recursivement
-                    for c in Lc1: 
-                       if c[1] == self.L1[j]: # On ignore si elle était en premiere ou seconde place de la paire
-                            Lc1.remove((c[0], c[1]))  # On supprime l'ancienne paire de la liste solution temporaire
-                            Lc1.append((self.L0[i], self.L1[j]))  # Ajoute la paire dans la liste solution temporaire
-                            self.recur(self.L0.index(c[0]), La1, Lc1, new_visited)
-                            if self.recur(self.L0.index(c[0]), La1, Lc1, new_visited)[3]:
-                                return self.recur(self.L0.index(c[0]), La1, Lc1, new_visited)
-                       elif if c[0] == self.L1[j]:
-                            Lc1.remove((c[0], c[1])) #On supprime l'ancienne paire de la liste solution temporaire
-                            Lc1.append((self.L0[i], self.L1[j])) # Ajoute la paire dans la liste solution temporaire
-                            if self.recur(self.L0.index(c[1]), La1, Lc1, new_visited)[3]: # Si il existe un chemin tel que la case i trouve une paire et toutes celles qui en avait déja avant aussi
-                                return self.recur(self.L0.index(c[1]), La1, Lc1, new_visited)    
-            return self.La, self.Lc,False  # Aucune modification n'est faite si on n'a pas reussi à trouver une paire à chacune des cases qui étaient déja prises
+    def run(self):
+        M=self.pairs2()
+        return hungarian_algorithm(M)
 
                   
                     
