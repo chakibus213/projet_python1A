@@ -160,7 +160,7 @@ class SolverEz(Solver):
     def hungarian_algorithm(cost_matrix):
    
         cost_matrix = np.array(cost_matrix)
-        row_ind, col_ind = linear_sum_assignment(-cost_matrix)  # Maximisation
+        row_ind, col_ind = linear_sum_assignment(-cost_matrix)  #linear_sum_assignment va donner le couplage de poids minimum donc on met un- pour que ca trouve le couplage de poids maximal
         return list(zip(row_ind, col_ind))
 
     def run(self):
