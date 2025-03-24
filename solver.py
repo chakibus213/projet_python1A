@@ -1,4 +1,8 @@
 from grid import Grid
+import sys
+import numpy as np
+from scipy.optimize import linear_sum_assignment
+
 class Solver:
     """
     A solver class. 
@@ -64,14 +68,14 @@ class SolverGreedy(Solver):
     def tri_pairs(self, liste_paires):  #tri une liste de paires en fonction de leur coût
         temp = [] #on crée une liste contenant les coûts de chacune des paires 
         compteur = 0
-        for element in liste_paires:  #on la trie par ordre décroissant selon leur coût
+        for element in liste_paires:  #on la trie par ordre croissant selon leur coût
             
             i1, j1 = element[0][0], element[0][1]
             i2, j2 = element[1][0], element[1][1]
 
             
 
-            temp.append( -(abs ( self.grid.value[i1][j1] - self.grid.value[i2][j2]), compteur)) 
+            temp.append( (abs ( self.grid.value[i1][j1] - self.grid.value[i2][j2]), compteur)) 
 
             compteur += 1
         
@@ -110,7 +114,29 @@ class SolverGreedy(Solver):
         return (s,L)  # Retourne la liste des paires et le score final
     
     def run(self):
-        return self.greedy_method()[1]
+        res = self.greedy_method()
+        return (res[0], res[1])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class SolverEz(Solver):
@@ -122,7 +148,6 @@ class SolverEz(Solver):
         On crée ensuite une matrice pour représenter les connexions possibles entre ces deux groupes.
         """
         super().__init__(grid)
-        self.Lc = []  # Liste des paires sélectionnées
         self.L, self.L0, self.L1 = self.pairs2()  # Génération des groupes des cases paires et impaires et de la matrice de connexions
         self.La = [row[:] for row in self.L]# Copie de la matrice des connexions pour modifications
 
@@ -146,31 +171,46 @@ class SolverEz(Solver):
         L = [[0 for k in range(len(L1))] for k1 in range(len(L0))]
         for i in range(len(L0)):
             for j in range(len(L1)):
-                if (L0[i], L1[j]) in self.grid.all_pairs() or (L1[j], L0[i]) in self.grid.all_pairs():
+                if ( ((L0[i], L1[j]) in self.grid.all_pairs() or (L1[j], L0[i]) in self.grid.all_pairs()) and Grid.test_color(L0[i], L1[j]) )  :
                     i1, j1 = L0[i][0], L0[i][1]
                     i2, j2 = L1[1][0], L1[1][1]
                 
                     L[i][j] = abs ( self.grid.value[i1][j1] - self.grid.value[i2][j2])  # Marque cette paire comme valide et met son poids dans la matrice d'adjacence
                     L[j][i] = abs ( self.grid.value[i1][j1] - self.grid.value[i2][j2])
                 else:
-                    L[i][j] = -1 # Marque cette paire comme non valide
+                    L[i][j] =  sys.maxsize # Marque cette paire comme non valide
 
-        return L  
+        return L, L0, L1
 
-    def hungarian_algorithm(cost_matrix):
+    def hungarian_algorithm(self):
    
-        cost_matrix = np.array(cost_matrix)
-        row_ind, col_ind = linear_sum_assignment(-cost_matrix)  #linear_sum_assignment va donner le couplage de poids minimum donc on met un- pour que ca trouve le couplage de poids maximal
-        return list(zip(row_ind, col_ind))
+        row_ind, col_ind = linear_sum_assignment(np.array(self.L))  #linear_sum_assignment va donner le couplage de poids minimum
+        res = list(zip(row_ind, col_ind))
+        self.pairs = [ (self.L0[i], self.L1[j])   for (i,j) in res]
+        
 
     def run(self):
-        M=self.pairs2()
-        return hungarian_algorithm(M)
+        self.hungarian_algorithm()
+        return (self.score(), self.pairs)
 
-                  
-                    
-        
-                      
+
+
+grid = Grid.grid_from_file("W:\Bureau\projet_info\ensae-prog25\input\grid13.in")
+      
+
+
+solver = SolverEz(grid)
+
+result = solver.run()
+
+allpairs = grid.all_pairs()
+
+
+def all_elements_in_list(L, All):
+    return all(element in All for element in L)
+
+
+
 
             
 
@@ -178,17 +218,6 @@ class SolverEz(Solver):
 
 
 
-grille = Grid.grid_from_file(r"C:\Users\robin\OneDrive\Documents\Cours\prog25\input\grid04.in", read_values=False)
-
-
-
-# Créer une instance de SolverGreedy en passant grille (instance de Grid)
-sg = SolverEz(grille)
-
-
-
-# Appeler la méthode score_g avec l'instance de Grid contenue dans sg
-print("The final score of SolverGreedy is:", sg.score_g())
 
 
 
