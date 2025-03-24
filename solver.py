@@ -171,7 +171,7 @@ class SolverEz(Solver):
         L = [[0 for k in range(len(L1))] for k1 in range(len(L0))]
         for i in range(len(L0)):
             for j in range(len(L1)):
-                if ( ((L0[i], L1[j]) in self.grid.all_pairs() or (L1[j], L0[i]) in self.grid.all_pairs()) and Grid.test_color(L0[i], L1[j]) )  :
+                if ( ((L0[i], L1[j]) in self.grid.all_pairs() or (L1[j], L0[i]) in self.grid.all_pairs()) and grid.test_color(L0[i], L1[j]) )  :
                     i1, j1 = L0[i][0], L0[i][1]
                     i2, j2 = L1[1][0], L1[1][1]
                 
