@@ -167,59 +167,40 @@ class SolverEz(Solver):
                 else:
                     L1.append((i, j))
 
+
         # Création de la matrice d'adjacence L pour représenter les connexions possibles entre L0 et L1
         L = [[0 for k in range(len(L1))] for k1 in range(len(L0))]
         for i in range(len(L0)):
             for j in range(len(L1)):
-                if ( ((L0[i], L1[j]) in self.grid.all_pairs() or (L1[j], L0[i]) in self.grid.all_pairs()) and grid.test_color(L0[i], L1[j]) )  :
+                if ( ((L0[i], L1[j]) in self.grid.all_pairs() ) and self.grid.test_color(L0[i], L1[j]) )  :
                     i1, j1 = L0[i][0], L0[i][1]
-                    i2, j2 = L1[1][0], L1[1][1]
+                    i2, j2 = L1[j][0], L1[j][1]
                 
                     L[i][j] = abs ( self.grid.value[i1][j1] - self.grid.value[i2][j2])  # Marque cette paire comme valide et met son poids dans la matrice d'adjacence
-                    L[j][i] = abs ( self.grid.value[i1][j1] - self.grid.value[i2][j2])
                 else:
-                    L[i][j] =  sys.maxsize # Marque cette paire comme non valide
+                    L[i][j] =  10**6 # Marque cette paire comme non valide
 
         return L, L0, L1
 
     def hungarian_algorithm(self):
-   
-        row_ind, col_ind = linear_sum_assignment(np.array(self.L))  #linear_sum_assignment va donner le couplage de poids minimum
-        res = list(zip(row_ind, col_ind))
-        self.pairs = [ (self.L0[i], self.L1[j])   for (i,j) in res]
+        """
+        Implémente l'algorithme hongrois pour trouver l'affectation optimale.
+        """
+        cost_matrix = np.array(self.L)
+        row_ind, col_ind = linear_sum_assignment(cost_matrix)
+        
+        # Vérification des paires valides après l'assignation
+        matching = []
+        for i, j in zip(row_ind, col_ind):
+            if self.L[i][j] < 10**6:  # S'assurer que la paire est valide
+                if ((self.L0[i], self.L1[j]) in self.grid.all_pairs()):
+                    matching.append((self.L0[i], self.L1[j]))
+                elif ((self.L1[j], self.L0[i]) in self.grid.all_pairs()):
+                    matching.append((self.L1[j], self.L0[i]))
+        
+        self.pairs = matching
         
 
     def run(self):
         self.hungarian_algorithm()
         return (self.score(), self.pairs)
-
-
-
-grid = Grid.grid_from_file("W:\Bureau\projet_info\ensae-prog25\input\grid13.in")
-      
-
-
-solver = SolverEz(grid)
-
-result = solver.run()
-
-allpairs = grid.all_pairs()
-
-
-def all_elements_in_list(L, All):
-    return all(element in All for element in L)
-
-
-
-
-            
-
-                
-
-
-
-
-
-
-      
-
