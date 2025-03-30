@@ -196,7 +196,7 @@ class Grid():
         return grid
 
 
-grille = Grid.grid_from_file(r"C:\Users\robin\OneDrive\Documents\Cours\prog25\input\grid02.in", read_values=True)
+
 
 
 
