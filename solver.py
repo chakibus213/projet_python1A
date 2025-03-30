@@ -204,3 +204,6 @@ class SolverEz(Solver):
     def run(self):
         self.hungarian_algorithm()
         return (self.score(), self.pairs)
+
+
+
