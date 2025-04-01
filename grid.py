@@ -144,6 +144,7 @@ class Grid():
                 if i != self.n-1 and j== self.m-1:
                     if self.test_color((i,j),(i+1,j)):
                         L.append(((i,j),(i+1,j)))
+                
         return L
 
     
